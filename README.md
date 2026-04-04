@@ -32,3 +32,8 @@ terraform -chdir=terraform test
 
 No command above creates cloud infrastructure. A deploy requires an explicit authenticated Terraform plan/apply and incurs GCP charges. Local broker integration instructions are in [testing](docs/testing.md).
 
+## Documentation
+
+[Documentation index](docs/README.md) · [Terraform interface](terraform/README.md) · [OCI parity](docs/oci-parity.md) · [Roadmap](docs/roadmap.md) · [Contributing](CONTRIBUTING.md) · [Security](SECURITY.md)
+
+The design builds on the operational goals of [kafka-oci-deployment](https://github.com/rclevenger-hm/kafka-oci-deployment). [LICENSE](LICENSE).
