@@ -15,3 +15,20 @@ Private, reproducible Apache Kafka on Compute Engine: dedicated KRaft controller
 - Tools cover lab PKI, health gates, unique-topic produce/consume tests, and failure-aware capacity estimates.
 - Prometheus exporter configuration, alert rules and rule tests, a Grafana dashboard, and recovery/upgrade/security runbooks are included.
 
+## Start here
+
+1. Read the [architecture](docs/architecture.md) and [cost model](docs/capacity-planning.md).
+2. Follow the [deployment guide](docs/deployment.md): create state storage and node TLS secrets before applying Terraform.
+3. Pass [acceptance checks](docs/acceptance.md) from a private client host.
+4. Connect an existing private monitoring stack using the [observability guide](docs/observability.md).
+
+```bash
+python3 -m unittest discover -s tests -v
+python3 tools/check_repo.py
+terraform -chdir=terraform init -backend=false
+terraform -chdir=terraform validate
+terraform -chdir=terraform test
+```
+
+No command above creates cloud infrastructure. A deploy requires an explicit authenticated Terraform plan/apply and incurs GCP charges. Local broker integration instructions are in [testing](docs/testing.md).
+
