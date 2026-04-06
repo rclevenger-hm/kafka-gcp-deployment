@@ -7,3 +7,13 @@ variable "project_id" {
   }
 }
 
+variable "region" {
+  description = "Region containing all Kafka zones."
+  type        = string
+  default     = "us-central1"
+  validation {
+    condition     = can(regex("^[a-z]+-[a-z]+[0-9]+$", var.region))
+    error_message = "Use a GCP region such as us-central1."
+  }
+}
+
