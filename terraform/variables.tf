@@ -17,3 +17,13 @@ variable "region" {
   }
 }
 
+variable "zones" {
+  description = "Three distinct zones in the selected region."
+  type        = list(string)
+  default     = ["us-central1-a", "us-central1-b", "us-central1-c"]
+  validation {
+    condition     = length(var.zones) == 3 && length(toset(var.zones)) == 3 && alltrue([for z in var.zones : startswith(z, "${var.region}-")])
+    error_message = "Select three unique zones in region."
+  }
+}
+
