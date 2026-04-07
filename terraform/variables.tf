@@ -37,3 +37,13 @@ variable "name_prefix" {
   }
 }
 
+variable "subnet_cidr" {
+  description = "Private RFC1918 IPv4 node subnet, /16 through /24."
+  type        = string
+  default     = "10.42.10.0/24"
+  validation {
+    condition     = can(cidrnetmask(var.subnet_cidr)) && can(regex("^(10\\.|192\\.168\\.|172\\.(1[6-9]|2[0-9]|3[01])\\.)", var.subnet_cidr)) && try(tonumber(split("/", var.subnet_cidr)[1]) >= 16 && tonumber(split("/", var.subnet_cidr)[1]) <= 24, false)
+    error_message = "Use a private IPv4 subnet between /16 and /24."
+  }
+}
+
