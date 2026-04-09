@@ -77,3 +77,9 @@ variable "broker_count" {
   }
 }
 
+variable "broker_machine_type" {
+  description = "Broker machine type; load test disk and network performance."
+  type        = string
+  default     = "e2-standard-4"
+}
+
