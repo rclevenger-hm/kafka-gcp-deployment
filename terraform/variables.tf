@@ -83,3 +83,9 @@ variable "broker_machine_type" {
   default     = "e2-standard-4"
 }
 
+variable "controller_machine_type" {
+  description = "Dedicated controller machine type."
+  type        = string
+  default     = "e2-standard-2"
+}
+
