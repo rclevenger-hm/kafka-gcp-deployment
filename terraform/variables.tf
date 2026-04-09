@@ -67,3 +67,13 @@ variable "metrics_cidrs" {
   }
 }
 
+variable "broker_count" {
+  description = "Broker count; adding brokers does not reassign partitions."
+  type        = number
+  default     = 3
+  validation {
+    condition     = var.broker_count >= 3 && var.broker_count <= 18 && floor(var.broker_count) == var.broker_count
+    error_message = "Use an integer broker count from 3 to 18."
+  }
+}
+
