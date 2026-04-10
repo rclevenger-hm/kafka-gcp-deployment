@@ -99,3 +99,13 @@ variable "broker_disk_gb" {
   }
 }
 
+variable "controller_disk_gb" {
+  description = "Controller metadata disk capacity."
+  type        = number
+  default     = 50
+  validation {
+    condition     = var.controller_disk_gb >= 20 && floor(var.controller_disk_gb) == var.controller_disk_gb
+    error_message = "Use at least 20 GiB."
+  }
+}
+
