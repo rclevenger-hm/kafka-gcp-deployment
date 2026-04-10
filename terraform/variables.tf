@@ -89,3 +89,13 @@ variable "controller_machine_type" {
   default     = "e2-standard-2"
 }
 
+variable "broker_disk_gb" {
+  description = "Per-broker persistent SSD capacity."
+  type        = number
+  default     = 500
+  validation {
+    condition     = var.broker_disk_gb >= 100 && floor(var.broker_disk_gb) == var.broker_disk_gb
+    error_message = "Use at least 100 GiB."
+  }
+}
+
