@@ -119,3 +119,12 @@ variable "dns_domain" {
   }
 }
 
+variable "tls_secret_versions" {
+  description = "Node name -> existing Secret Manager numeric version path; payload never enters state."
+  type        = map(string)
+  validation {
+    condition     = alltrue([for s in values(var.tls_secret_versions) : can(regex("^projects/[a-z0-9-]+/secrets/[A-Za-z0-9_-]+/versions/[1-9][0-9]*$", s))])
+    error_message = "Pin numeric Secret Manager versions; latest is prohibited."
+  }
+}
+
