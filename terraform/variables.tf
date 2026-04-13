@@ -128,3 +128,13 @@ variable "tls_secret_versions" {
   }
 }
 
+variable "admin_principals" {
+  description = "Kafka certificate principals allowed to administer the cluster."
+  type        = set(string)
+  default     = ["User:CN=kafka-admin"]
+  validation {
+    condition     = length(var.admin_principals) > 0 && alltrue([for p in var.admin_principals : can(regex("^User:CN=[a-zA-Z0-9._-]+$", p))])
+    error_message = "Use explicit simple certificate CN principals."
+  }
+}
+
