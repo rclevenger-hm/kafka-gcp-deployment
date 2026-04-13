@@ -144,3 +144,9 @@ variable "deletion_protection" {
   default     = true
 }
 
+variable "enable_iap_ssh" {
+  description = "Allow SSH only from Google IAP; IAM still required."
+  type        = bool
+  default     = true
+}
+
