@@ -138,3 +138,9 @@ variable "admin_principals" {
   }
 }
 
+variable "deletion_protection" {
+  description = "Compute API deletion protection; disks additionally have prevent_destroy."
+  type        = bool
+  default     = true
+}
+
