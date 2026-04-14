@@ -156,3 +156,9 @@ variable "enable_nat" {
   default     = true
 }
 
+variable "labels" {
+  description = "Additional ownership and billing labels."
+  type        = map(string)
+  default     = {}
+}
+
