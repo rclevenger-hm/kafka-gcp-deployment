@@ -150,3 +150,9 @@ variable "enable_iap_ssh" {
   default     = true
 }
 
+variable "enable_nat" {
+  description = "Cloud NAT for apt and pinned artifact downloads. Disable only with an egress alternative."
+  type        = bool
+  default     = true
+}
+
