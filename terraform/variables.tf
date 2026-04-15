@@ -162,3 +162,13 @@ variable "labels" {
   default     = {}
 }
 
+variable "kafka_version" {
+  description = "Pinned Kafka 4.1 release used by provisioning."
+  type        = string
+  default     = "4.1.2"
+  validation {
+    condition     = can(regex("^4\\.1\\.[0-9]+$", var.kafka_version))
+    error_message = "This implementation supports the Kafka 4.1 release line."
+  }
+}
+
