@@ -182,3 +182,12 @@ variable "kafka_sha512" {
   }
 }
 
+variable "retention_hours" {
+  description = "Default retention period for newly created topics."
+  type        = number
+  default     = 168
+  validation {
+    condition     = var.retention_hours >= 1 && floor(var.retention_hours) == var.retention_hours
+    error_message = "Retention must be positive whole hours."
+  }
+}
