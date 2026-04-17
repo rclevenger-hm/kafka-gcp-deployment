@@ -12,3 +12,4 @@ locals {
   super_users         = join(";", sort(concat(tolist(var.admin_principals), [for name in keys(local.nodes) : "User:CN=${name}"])))
   runtime_files       = { for f in ["provision.py", "kafka.service", "kafka.env", "jmx.yml"] : f => file("${path.module}/../bootstrap/${f}") }
 }
+resource "random_id" "cluster" { byte_length = 16 }
