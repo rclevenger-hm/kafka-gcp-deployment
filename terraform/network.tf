@@ -16,3 +16,9 @@ resource "google_compute_subnetwork" "kafka" {
     metadata             = "INCLUDE_ALL_METADATA"
   }
 }
+resource "google_compute_router" "egress" {
+  count   = var.enable_nat ? 1 : 0
+  name    = "${var.name_prefix}-router"
+  region  = var.region
+  network = google_compute_network.kafka.id
+}
