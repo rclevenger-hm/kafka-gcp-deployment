@@ -18,3 +18,14 @@ resource "google_compute_firewall" "replication" {
     ports    = ["9094"]
   }
 }
+resource "google_compute_firewall" "clients" {
+  count                   = length(var.client_cidrs) > 0 ? 1 : 0
+  name                    = "${var.name_prefix}-clients"
+  network                 = google_compute_network.kafka.name
+  source_ranges           = var.client_cidrs
+  target_service_accounts = [for name in keys(local.brokers) : google_service_account.node[name].email]
+  allow {
+    protocol = "tcp"
+    ports    = ["9092"]
+  }
+}
