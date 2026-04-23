@@ -40,3 +40,15 @@ resource "google_compute_firewall" "metrics" {
     ports    = ["9404"]
   }
 }
+resource "google_compute_firewall" "iap" {
+  count                   = var.enable_iap_ssh ? 1 : 0
+  name                    = "${var.name_prefix}-iap-ssh"
+  network                 = google_compute_network.kafka.name
+  source_ranges           = ["35.235.240.0/20"]
+  target_service_accounts = [for n in google_service_account.node : n.email]
+  allow {
+    protocol = "tcp"
+    ports    = ["22"]
+  }
+  log_config { metadata = "INCLUDE_ALL_METADATA" }
+}
