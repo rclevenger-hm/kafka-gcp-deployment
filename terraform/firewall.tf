@@ -29,3 +29,14 @@ resource "google_compute_firewall" "clients" {
     ports    = ["9092"]
   }
 }
+resource "google_compute_firewall" "metrics" {
+  count                   = length(var.metrics_cidrs) > 0 ? 1 : 0
+  name                    = "${var.name_prefix}-metrics"
+  network                 = google_compute_network.kafka.name
+  source_ranges           = var.metrics_cidrs
+  target_service_accounts = [for n in google_service_account.node : n.email]
+  allow {
+    protocol = "tcp"
+    ports    = ["9404"]
+  }
+}
