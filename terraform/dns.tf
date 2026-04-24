@@ -7,3 +7,11 @@ resource "google_dns_managed_zone" "kafka" {
   }
   depends_on = [google_project_service.api]
 }
+resource "google_compute_address" "node" {
+  for_each     = local.nodes
+  name         = "${each.key}-ip"
+  address_type = "INTERNAL"
+  region       = var.region
+  subnetwork   = google_compute_subnetwork.kafka.id
+  address      = cidrhost(var.subnet_cidr, each.value.host)
+}
