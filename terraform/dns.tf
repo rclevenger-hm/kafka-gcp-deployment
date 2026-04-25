@@ -15,3 +15,11 @@ resource "google_compute_address" "node" {
   subnetwork   = google_compute_subnetwork.kafka.id
   address      = cidrhost(var.subnet_cidr, each.value.host)
 }
+resource "google_dns_record_set" "node" {
+  for_each     = local.nodes
+  managed_zone = google_dns_managed_zone.kafka.name
+  name         = "${each.key}.${var.dns_domain}."
+  type         = "A"
+  ttl          = 60
+  rrdatas      = [google_compute_address.node[each.key].address]
+}
