@@ -14,3 +14,10 @@ output "inventory" {
     secret_version = lookup(var.tls_secret_versions, name, "MISSING")
   } }
 }
+output "prometheus_targets" {
+  description = "File service discovery entries for a private Prometheus collector."
+  value = [for name, n in local.nodes : {
+    targets = ["${name}.${var.dns_domain}:9404"]
+    labels  = { cluster = var.name_prefix, role = n.role, zone = n.zone }
+  }]
+}
