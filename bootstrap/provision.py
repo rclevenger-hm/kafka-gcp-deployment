@@ -40,3 +40,15 @@ def atomic_write(path, value, mode=0o640):
             os.unlink(temp)
 
 
+def request(url, headers=None):
+    for attempt in range(5):
+        try:
+            req = urllib.request.Request(url, headers=headers or {})
+            with urllib.request.urlopen(req, timeout=30) as response:
+                return response.read()
+        except OSError:
+            if attempt == 4:
+                raise
+            time.sleep(2 ** attempt)
+
+
