@@ -24,3 +24,19 @@ def run(*args, **kwargs):
     return subprocess.run(args, check=True, text=True, timeout=300, **kwargs)
 
 
+def atomic_write(path, value, mode=0o640):
+    path = Path(path)
+    path.parent.mkdir(parents=True, exist_ok=True)
+    fd, temp = tempfile.mkstemp(dir=path.parent)
+    try:
+        with os.fdopen(fd, "w") as stream:
+            stream.write(value)
+            stream.flush()
+            os.fsync(stream.fileno())
+        os.chmod(temp, mode)
+        os.replace(temp, path)
+    finally:
+        if os.path.exists(temp):
+            os.unlink(temp)
+
+
