@@ -52,3 +52,11 @@ def request(url, headers=None):
             time.sleep(2 ** attempt)
 
 
+def secret_payload(version):
+    if not re.fullmatch(r"projects/[a-z0-9-]+/secrets/[A-Za-z0-9_-]+/versions/[1-9][0-9]*", version):
+        raise ValueError("Expected a pinned numeric secret version")
+    token = json.loads(request(META + "instance/service-accounts/default/token", {"Metadata-Flavor": "Google"}))["access_token"]
+    data = json.loads(request("https://secretmanager.googleapis.com/v1/" + version + ":access", {"Authorization": "Bearer " + token}))
+    return json.loads(base64.b64decode(data["payload"]["data"], validate=True))
+
+
