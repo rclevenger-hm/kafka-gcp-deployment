@@ -106,3 +106,23 @@ def render_properties(c, root="/var/lib/kafka", tls="/etc/kafka/tls"):
     return "".join(f"{key}={value}\n" for key, value in config.items())
 
 
+def verify_identity(root, cluster_id, node_id):
+    """Never overwrite foreign, incomplete or nonempty unformatted storage."""
+    paths = [Path(root) / "data", Path(root) / "metadata"]
+    found = []
+    for path in paths:
+        meta = path / "meta.properties"
+        if meta.exists():
+            values = dict(line.split("=", 1) for line in meta.read_text().splitlines() if "=" in line and not line.startswith("#"))
+            if values.get("cluster.id") != cluster_id or values.get("node.id") != str(node_id):
+                raise ValueError("Disk cluster/node identity does not match configuration")
+            found.append(True)
+        else:
+            if path.exists() and any(path.iterdir()):
+                raise ValueError("Refusing to format a nonempty directory without identity")
+            found.append(False)
+    if any(found) and not all(found):
+        raise ValueError("Partial storage identity; operator recovery required")
+    return all(found)
+
+
