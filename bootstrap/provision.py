@@ -126,3 +126,23 @@ def verify_identity(root, cluster_id, node_id):
     return all(found)
 
 
+def download_verified(url, destination, expected, algorithm="sha512"):
+    if not url.startswith("https://"):
+        raise ValueError("Artifacts require HTTPS")
+    destination = Path(destination)
+    if destination.exists() and hashlib.new(algorithm, destination.read_bytes()).hexdigest() == expected:
+        return
+    temp = destination.with_suffix(destination.suffix + ".partial")
+    digest = hashlib.new(algorithm)
+    try:
+        with urllib.request.urlopen(url, timeout=120) as response, temp.open("wb") as output:
+            while chunk := response.read(1024 * 1024):
+                digest.update(chunk)
+                output.write(chunk)
+        if digest.hexdigest() != expected:
+            raise ValueError("Artifact checksum mismatch")
+        os.replace(temp, destination)
+    finally:
+        temp.unlink(missing_ok=True)
+
+
