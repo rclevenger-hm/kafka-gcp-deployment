@@ -78,3 +78,31 @@ def validate_config(c):
             raise ValueError("Invalid positive integer: " + field)
 
 
+def render_properties(c, root="/var/lib/kafka", tls="/etc/kafka/tls"):
+    validate_config(c)
+    config = {
+        "process.roles": c["role"], "node.id": c["node_id"],
+        "controller.quorum.bootstrap.servers": c["quorum"],
+        "controller.listener.names": "CONTROLLER",
+        "listener.security.protocol.map": "CLIENT:SSL,BROKER:SSL,CONTROLLER:SSL",
+        "inter.broker.listener.name": "BROKER",
+        "listeners": "CONTROLLER://0.0.0.0:9093" if c["role"] == "controller" else "CLIENT://0.0.0.0:9092,BROKER://0.0.0.0:9094",
+        "log.dirs": root + "/data", "metadata.log.dir": root + "/metadata",
+        "ssl.keystore.type": "PEM", "ssl.keystore.location": tls + "/node.pem",
+        "ssl.truststore.type": "PEM", "ssl.truststore.location": tls + "/ca.pem",
+        "ssl.client.auth": "required", "ssl.endpoint.identification.algorithm": "https",
+        "ssl.enabled.protocols": "TLSv1.3,TLSv1.2",
+        "authorizer.class.name": "org.apache.kafka.metadata.authorizer.StandardAuthorizer",
+        "allow.everyone.if.no.acl.found": "false", "super.users": c["super_users"],
+        "auto.create.topics.enable": "false", "unclean.leader.election.enable": "false",
+        "default.replication.factor": 3, "min.insync.replicas": 2,
+        "offsets.topic.replication.factor": 3, "transaction.state.log.replication.factor": 3,
+        "transaction.state.log.min.isr": 2, "log.retention.hours": c["retention_hours"],
+        "num.partitions": 3,
+    }
+    if c["role"] == "broker":
+        config["advertised.listeners"] = f"CLIENT://{c['fqdn']}:9092,BROKER://{c['fqdn']}:9094"
+        config["broker.rack"] = c["zone"]
+    return "".join(f"{key}={value}\n" for key, value in config.items())
+
+
