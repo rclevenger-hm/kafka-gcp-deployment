@@ -213,3 +213,63 @@ def install_tls(bundle, config, directory):
     atomic_write(directory / "ca.pem", bundle["ca"], 0o600)
 
 
+def provision(config_path, allow_change=False):
+    c = json.loads(Path(config_path).read_text())
+    validate_config(c)
+    state = Path("/var/lib/kafka-runtime.json")
+    runtime = Path(__file__).parent
+    fingerprint = hashlib.sha256(json.dumps({"config": c, "files": {p.name: p.read_text() for p in runtime.iterdir() if p.name in {"provision.py", "kafka.service", "kafka.env", "jmx.yml"}}}, sort_keys=True).encode()).hexdigest()
+    if state.exists() and json.loads(state.read_text())["fingerprint"] != fingerprint and not allow_change:
+        raise RuntimeError("Runtime change pending. Follow the rolling-change runbook and use --apply-change on one healthy node at a time.")
+    # Fail secret access before changing local services or packages.
+    bundle = secret_payload(c["tls_secret_version"])
+    run("apt-get", "update", "-qq")
+    run("apt-get", "install", "-y", "--no-install-recommends", "openjdk-17-jre-headless", "openssl", "e2fsprogs", "util-linux", "ca-certificates")
+    try:
+        pwd.getpwnam("kafka")
+    except KeyError:
+        run("useradd", "--system", "--home-dir", "/var/lib/kafka", "--shell", "/usr/sbin/nologin", "kafka")
+    root = mount_data()
+    formatted = verify_identity(root, c["cluster_id"], c["node_id"])
+    target = Path("/opt/kafka_2.13-" + c["kafka_version"])
+    archive = Path("/var/cache/kafka_2.13-" + c["kafka_version"] + ".tgz")
+    download_verified(f"https://archive.apache.org/dist/kafka/{c['kafka_version']}/{archive.name}", archive, c["kafka_sha512"])
+    if not (target / ".verified").exists() or (target / ".verified").read_text().strip() != c["kafka_sha512"]:
+        with tempfile.TemporaryDirectory(dir="/opt") as staging:
+            extract_verified(archive, staging)
+            if target.exists():
+                shutil.rmtree(target)
+            shutil.move(str(Path(staging) / target.name), target)
+            atomic_write(target / ".verified", c["kafka_sha512"], 0o644)
+    download_verified(JMX_URL, "/opt/kafka-jmx.jar", JMX_SHA256, "sha256")
+    # Stop only after all artifact/identity checks have succeeded.
+    subprocess.run(["systemctl", "stop", "kafka.service"], check=False, timeout=180, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL)
+    install_tls(bundle, c, "/etc/kafka/tls")
+    link = Path("/opt/kafka.next")
+    link.unlink(missing_ok=True)
+    link.symlink_to(target)
+    os.replace(link, "/opt/kafka")
+    atomic_write("/etc/kafka/server.properties", render_properties(c))
+    env = (runtime / "kafka.env").read_text()
+    if c["role"] == "controller":
+        env = env.replace("2g", "1g")
+    atomic_write("/etc/kafka/kafka.env", env)
+    atomic_write("/etc/kafka/jmx.yml", (runtime / "jmx.yml").read_text())
+    atomic_write("/etc/systemd/system/kafka.service", (runtime / "kafka.service").read_text(), 0o644)
+    for path in (root / "data", root / "metadata", Path("/var/log/kafka")):
+        path.mkdir(parents=True, exist_ok=True)
+    run("chown", "-R", "kafka:kafka", "/etc/kafka")
+    account = pwd.getpwnam("kafka")
+    for path in (root, root / "data", root / "metadata", Path("/var/log/kafka")):
+        os.chown(path, account.pw_uid, account.pw_gid)
+    if not formatted:
+        command = ["runuser", "-u", "kafka", "--", "/opt/kafka/bin/kafka-storage.sh", "format", "--cluster-id", c["cluster_id"], "--config", "/etc/kafka/server.properties"]
+        command += ["--initial-controllers", c["initial_controllers"]] if c["role"] == "controller" else ["--no-initial-controllers"]
+        run(*command)
+    run("systemctl", "daemon-reload")
+    run("systemctl", "enable", "--now", "kafka.service")
+    run("systemctl", "is-active", "--quiet", "kafka.service")
+    atomic_write(state, json.dumps({"fingerprint": fingerprint, "cluster_id": c["cluster_id"], "node_id": c["node_id"]}) + "\n", 0o600)
+    print("Kafka process started. Verify quorum and replicated produce/consume before accepting traffic.")
+
+
