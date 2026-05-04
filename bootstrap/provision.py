@@ -189,3 +189,27 @@ def mount_data():
     return mount
 
 
+def install_tls(bundle, config, directory):
+    directory = Path(directory)
+    directory.mkdir(parents=True, exist_ok=True, mode=0o700)
+    for key in ("certificate", "private_key", "ca"):
+        if not isinstance(bundle.get(key), str) or "-----BEGIN " not in bundle[key]:
+            raise ValueError("Missing PEM material: " + key)
+    # Validate the full bundle before replacing active files.
+    with tempfile.TemporaryDirectory() as temp:
+        temp = Path(temp)
+        for key in ("certificate", "private_key", "ca"):
+            atomic_write(temp / key, bundle[key], 0o600)
+        run("openssl", "verify", "-CAfile", str(temp / "ca"), "-verify_hostname", config["fqdn"], str(temp / "certificate"), capture_output=True)
+        run("openssl", "x509", "-in", str(temp / "certificate"), "-checkend", "86400", "-noout", capture_output=True)
+        cert_pub = run("openssl", "x509", "-in", str(temp / "certificate"), "-pubkey", "-noout", capture_output=True).stdout
+        key_pub = run("openssl", "pkey", "-in", str(temp / "private_key"), "-pubout", capture_output=True).stdout
+        subject = run("openssl", "x509", "-in", str(temp / "certificate"), "-noout", "-subject", "-nameopt", "RFC2253", capture_output=True).stdout.strip()
+        if cert_pub != key_pub or subject != "subject=CN=" + config["node_name"]:
+            raise ValueError("TLS key or certificate principal does not match node")
+        if "-----BEGIN PRIVATE KEY-----" not in bundle["private_key"]:
+            raise ValueError("Use an unencrypted PKCS8 private key")
+    atomic_write(directory / "node.pem", bundle["private_key"].strip() + "\n" + bundle["certificate"].strip() + "\n", 0o600)
+    atomic_write(directory / "ca.pem", bundle["ca"], 0o600)
+
+
