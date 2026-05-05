@@ -1,0 +1,33 @@
+[Unit]
+Description=Apache Kafka KRaft node
+After=network-online.target
+Wants=network-online.target
+RequiresMountsFor=/var/lib/kafka
+ConditionPathExists=/etc/kafka/server.properties
+
+[Service]
+Type=simple
+User=kafka
+Group=kafka
+EnvironmentFile=/etc/kafka/kafka.env
+ExecStart=/opt/kafka/bin/kafka-server-start.sh /etc/kafka/server.properties
+Restart=on-failure
+RestartSec=10
+TimeoutStopSec=180
+KillSignal=SIGTERM
+SuccessExitStatus=143
+LimitNOFILE=100000
+UMask=0027
+NoNewPrivileges=true
+PrivateTmp=true
+ProtectSystem=strict
+ProtectHome=true
+ReadWritePaths=/var/lib/kafka /var/log/kafka
+ProtectKernelTunables=true
+ProtectKernelModules=true
+ProtectControlGroups=true
+RestrictSUIDSGID=true
+CapabilityBoundingSet=
+
+[Install]
+WantedBy=multi-user.target
