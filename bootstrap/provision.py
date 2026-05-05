@@ -273,3 +273,15 @@ def provision(config_path, allow_change=False):
     print("Kafka process started. Verify quorum and replicated produce/consume before accepting traffic.")
 
 
+def main():
+    parser = argparse.ArgumentParser(description=__doc__)
+    parser.add_argument("--config", required=True)
+    parser.add_argument("--apply-change", action="store_true")
+    args = parser.parse_args()
+    if os.geteuid() != 0:
+        parser.error("Provisioning requires root on a dedicated GCE node")
+    provision(args.config, args.apply_change)
+
+
+if __name__ == "__main__":
+    main()
