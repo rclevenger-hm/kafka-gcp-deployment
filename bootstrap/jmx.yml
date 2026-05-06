@@ -1,0 +1,25 @@
+startDelaySeconds: 10
+lowercaseOutputName: true
+lowercaseOutputLabelNames: true
+rules:
+  - pattern: 'kafka.server<type=ReplicaManager, name=(UnderReplicatedPartitions|UnderMinIsrPartitionCount|OfflineReplicaCount)><>Value'
+    name: kafka_replica_$1
+    type: GAUGE
+  - pattern: 'kafka.controller<type=KafkaController, name=(ActiveControllerCount|OfflinePartitionsCount)><>Value'
+    name: kafka_controller_$1
+    type: GAUGE
+  - pattern: 'kafka.server<type=BrokerTopicMetrics, name=(BytesInPerSec|BytesOutPerSec|MessagesInPerSec)><>Count'
+    name: kafka_broker_$1_total
+    type: COUNTER
+  - pattern: 'kafka.network<type=RequestMetrics, name=TotalTimeMs, request=(Produce|FetchConsumer)><>(99thPercentile|Mean)'
+    name: kafka_request_duration_ms
+    labels:
+      request: '$1'
+      statistic: '$2'
+    type: GAUGE
+  - pattern: 'kafka.server<type=KafkaRequestHandlerPool, name=RequestHandlerAvgIdlePercent><>OneMinuteRate'
+    name: kafka_request_handler_idle_ratio
+    type: GAUGE
+  - pattern: 'kafka.server<type=raft-metrics><>(current-leader|high-watermark|log-end-offset|number-unknown-voter-connections)'
+    name: kafka_raft_$1
+    type: GAUGE
