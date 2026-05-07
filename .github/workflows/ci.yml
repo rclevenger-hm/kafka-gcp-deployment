@@ -1,0 +1,65 @@
+name: Validate Kafka deployment
+on:
+  push:
+  pull_request:
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: kafka-ci-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  checks:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Unit and security regression tests
+        run: python -m unittest discover -s tests -v
+      - name: Verify documentation and repository assets
+        run: python tools/check_repo.py
+      - name: Shell syntax
+        run: bash -n bootstrap/startup.sh
+  terraform:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    defaults:
+      run:
+        working-directory: terraform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: '1.12.2'
+      - run: terraform fmt -check -recursive
+      - run: terraform init -backend=false -input=false -lockfile=readonly
+      - run: terraform validate -no-color
+      - run: terraform test -no-color
+  integration:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: '17'
+      - name: Download and verify pinned Kafka and exporter
+        run: python tools/fetch_test_runtime.py
+      - name: Six-node TLS, ACL and restart exercise
+        run: python tests/integration.py --kafka-home .local/kafka_2.13-4.1.2 --jmx-jar .local/jmx.jar
+  monitoring:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Prometheus alerts and behavior
+        run: |
+          docker run --rm --entrypoint promtool -v "$PWD/monitoring:/work:ro" prom/prometheus:v3.2.1 check rules /work/alerts.yml
+          docker run --rm --entrypoint promtool -v "$PWD/monitoring:/work:ro" prom/prometheus:v3.2.1 test rules /work/alerts.test.yml
