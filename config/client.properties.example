@@ -1,0 +1,8 @@
+security.protocol=SSL
+ssl.keystore.type=PEM
+ssl.keystore.location=/absolute/path/pki/kafka-admin-client.pem
+ssl.truststore.type=PEM
+ssl.truststore.location=/absolute/path/pki/ca.pem
+ssl.endpoint.identification.algorithm=https
+acks=all
+enable.idempotence=true
