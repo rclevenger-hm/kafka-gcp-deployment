@@ -1,0 +1,27 @@
+# Separate destination cluster and topic ACLs are prerequisites.
+clusters=primary,recovery
+primary.bootstrap.servers=kafka-broker-1.kafka.internal:9092
+recovery.bootstrap.servers=kafka-broker-1.recovery.internal:9092
+primary.security.protocol=SSL
+primary.ssl.keystore.type=PEM
+primary.ssl.keystore.location=/etc/mm2/primary-client.pem
+primary.ssl.truststore.type=PEM
+primary.ssl.truststore.location=/etc/mm2/primary-ca.pem
+recovery.security.protocol=SSL
+recovery.ssl.keystore.type=PEM
+recovery.ssl.keystore.location=/etc/mm2/recovery-client.pem
+recovery.ssl.truststore.type=PEM
+recovery.ssl.truststore.location=/etc/mm2/recovery-ca.pem
+primary->recovery.enabled=true
+primary->recovery.topics=orders\..*
+primary->recovery.groups=orders-.*
+replication.factor=3
+checkpoints.topic.replication.factor=3
+heartbeats.topic.replication.factor=3
+offset-syncs.topic.replication.factor=3
+config.storage.replication.factor=3
+offset.storage.replication.factor=3
+status.storage.replication.factor=3
+sync.topic.acls.enabled=false
+emit.checkpoints.enabled=true
+# Offset translation and failover must be rehearsed; this is asynchronous DR.
