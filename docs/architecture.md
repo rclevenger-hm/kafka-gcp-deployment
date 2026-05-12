@@ -31,3 +31,8 @@ No VM has an external IP. Cloud NAT provides outbound access for Debian packages
 
 Three controllers tolerate one voting member loss. RF3/minISR2 with `acks=all` tolerates one unavailable replica of a partition. Zone awareness distributes replicas, but topic assignment and zone skew still need verification. Adding brokers does not move partitions automatically. The default three-broker layout cannot restore RF3 while a broker remains absent; a replacement is required. Region loss requires a separate recovery cluster.
 
+## Ownership boundaries
+
+Terraform owns cloud topology and nonsecret desired configuration. The node runtime owns package installation, data mount, TLS files and service state. Kafka owns log/metadata contents and partition placement. Prometheus/Alertmanager, client routing, organizational PKI, remote state provisioning and cross-region DR are explicit prerequisites or separate systems.
+
+See [design decisions](decisions/001-self-managed.md), [security](security.md), and [acceptance](acceptance.md).
