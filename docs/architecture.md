@@ -15,3 +15,15 @@ flowchart TD
   Brokers --> Metrics["Private Prometheus collector"]
 ```
 
+## Network paths
+
+| Path | Port | Restriction |
+| --- | --- | --- |
+| Client to broker | TCP 9092 | Explicit private client CIDRs, TLS identity and ACL |
+| Node to broker | TCP 9094 | Node service accounts, mutual TLS |
+| Node to controller | TCP 9093 | Node service accounts, mutual TLS |
+| Collector to node | TCP 9404 | Explicit private metrics CIDRs |
+| Administrator to node | TCP 22 | IAP source range plus IAM and OS Login |
+
+No VM has an external IP. Cloud NAT provides outbound access for Debian packages and pinned Kafka/exporter artifacts. Private Google Access supports Google API paths. DNS is visible to this VPC only; peered networks need DNS peering or forwarding in addition to routes and firewalls. Bootstrap addresses do not replace access to every advertised broker endpoint.
+
