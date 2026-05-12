@@ -27,3 +27,7 @@ flowchart TD
 
 No VM has an external IP. Cloud NAT provides outbound access for Debian packages and pinned Kafka/exporter artifacts. Private Google Access supports Google API paths. DNS is visible to this VPC only; peered networks need DNS peering or forwarding in addition to routes and firewalls. Bootstrap addresses do not replace access to every advertised broker endpoint.
 
+## Failure envelope
+
+Three controllers tolerate one voting member loss. RF3/minISR2 with `acks=all` tolerates one unavailable replica of a partition. Zone awareness distributes replicas, but topic assignment and zone skew still need verification. Adding brokers does not move partitions automatically. The default three-broker layout cannot restore RF3 while a broker remains absent; a replacement is required. Region loss requires a separate recovery cluster.
+
