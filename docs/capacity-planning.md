@@ -13,3 +13,7 @@ The calculator returns replicated GiB with overhead, normal per-broker capacity,
 
 Record peak MiB/s, retention hours, required partitions, broker count, compression factor, topic skew, recovery objective, maximum acceptable lag and growth horizon. Run a representative load test, then record disk latency, client p99, CPU/network saturation and recovery performance under load. Size heap independently from Linux page cache.
 
+## Cost contributors
+
+Six default VMs run continuously. Broker disks total 1500 GiB and controller disks total 150 GiB, plus boot disks. Include SSD provisioned capacity, network across zones, Cloud NAT processing and gateway time, private DNS, flow logs, Secret Manager, state storage, monitoring and DR. Use GCP's current pricing calculator for your region and workload; this repo does not assert a monthly price. Set budget alerts outside this module before deploying.
+
