@@ -17,3 +17,6 @@ Record peak MiB/s, retention hours, required partitions, broker count, compressi
 
 Six default VMs run continuously. Broker disks total 1500 GiB and controller disks total 150 GiB, plus boot disks. Include SSD provisioned capacity, network across zones, Cloud NAT processing and gateway time, private DNS, flow logs, Secret Manager, state storage, monitoring and DR. Use GCP's current pricing calculator for your region and workload; this repo does not assert a monthly price. Set budget alerts outside this module before deploying.
 
+## Scaling
+
+Increase disk capacity before exhaustion, then grow the filesystem deliberately. Adding a broker updates infrastructure and identity configuration but does not rebalance existing topics. Plan reassignment with explicit throttles, monitor ISR and client latency, then verify replica placement by zone. Never shrink a disk or remove a broker before migrating all replicas.
