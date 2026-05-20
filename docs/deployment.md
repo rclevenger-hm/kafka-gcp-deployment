@@ -34,3 +34,17 @@ gcloud secrets versions add kafka-broker-1-tls --data-file=pki/kafka-broker-1.js
 
 Repeat for all controllers/brokers. A bundle has `certificate`, `private_key`, and `ca` PEM string fields. Put the returned **numeric** version paths into `tls_secret_versions`. Runtime identities receive accessor permission only on their own secret; secret-level IAM permits versions of that secret, while desired configuration pins the selected version. No secret payload is passed to Terraform. Terraform will reject missing node entries or duplicate version references.
 
+## Plan and apply
+
+```bash
+cp terraform/terraform.tfvars.example terraform/terraform.tfvars
+cp terraform/backend.hcl.example terraform/backend.hcl
+# Edit both local files for your project, network, secrets and state bucket.
+terraform -chdir=terraform init -reconfigure -backend-config=backend.hcl
+terraform -chdir=terraform plan -out=deployment.tfplan
+terraform -chdir=terraform apply deployment.tfplan
+terraform -chdir=terraform output
+```
+
+Inspect the saved plan: no public IPs, six default disks/nodes, three distinct zones, narrow client/metrics rules, numeric secret versions, intended region and protected storage. Bootstrap can take several minutes after VM creation; a successful apply is not Kafka readiness. If organization policies prevent external package downloads, supply an approved egress mirror strategy before disabling NAT.
+
