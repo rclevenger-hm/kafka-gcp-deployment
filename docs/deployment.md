@@ -12,3 +12,25 @@ Authenticate with `gcloud auth application-default login`, or use an approved sh
 
 Copy `terraform/backend.hcl.example` to `terraform/backend.hcl` and select an existing bucket and unique environment prefix. The GCS backend provides locking; do not disable locking. Protect state access because metadata, addresses and identity references are operationally sensitive even though TLS keys are absent. A workstation using `init -backend=false` for tests must reinitialize with `-reconfigure` before a real deployment.
 
+## TLS preparation
+
+Each node needs a certificate with its FQDN in DNS SAN and exactly `CN=<node-name>`. Include both serverAuth and clientAuth usage. Keys must be unencrypted PKCS8 PEM. Use an organizational CA and include its trusted CA chain in `ca`; this repository's generator is for lab certificates only.
+
+For a disposable lab:
+
+```bash
+python3 tools/lab_pki.py --out pki --prefix kafka --domain kafka.internal --brokers 3
+```
+
+The command refuses to overwrite an existing directory, issues 30-day certificates and creates an admin client identity. Keep the CA key offline. Never upload `ca.key`, the admin private key or another node's key to a node secret.
+
+Enable Secret Manager, then create one secret per node and upload only its JSON bundle. For example:
+
+```bash
+gcloud services enable secretmanager.googleapis.com --project PROJECT_ID
+gcloud secrets create kafka-broker-1-tls --replication-policy=automatic --project PROJECT_ID
+gcloud secrets versions add kafka-broker-1-tls --data-file=pki/kafka-broker-1.json --project PROJECT_ID
+```
+
+Repeat for all controllers/brokers. A bundle has `certificate`, `private_key`, and `ca` PEM string fields. Put the returned **numeric** version paths into `tls_secret_versions`. Runtime identities receive accessor permission only on their own secret; secret-level IAM permits versions of that secret, while desired configuration pins the selected version. No secret payload is passed to Terraform. Terraform will reject missing node entries or duplicate version references.
+
