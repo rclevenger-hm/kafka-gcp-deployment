@@ -48,3 +48,15 @@ terraform -chdir=terraform output
 
 Inspect the saved plan: no public IPs, six default disks/nodes, three distinct zones, narrow client/metrics rules, numeric secret versions, intended region and protected storage. Bootstrap can take several minutes after VM creation; a successful apply is not Kafka readiness. If organization policies prevent external package downloads, supply an approved egress mirror strategy before disabling NAT.
 
+## Initial validation
+
+Use `gcloud compute ssh NODE --zone ZONE --project PROJECT_ID --tunnel-through-iap`. Operators need IAP tunnel access, OS Admin Login for sudo and any required service-account access permissions; project IAM is not granted to humans by this module. Inspect `sudo journalctl -u google-startup-scripts -u kafka --since -20min`.
+
+From a host with private DNS/routing and an allowed client CIDR, copy `config/client.properties.example` to a protected local file, set absolute PEM paths, and run:
+
+```bash
+python3 tools/health.py --bootstrap BROKER_ENDPOINTS --config /secure/client.properties
+python3 tools/smoke.py --bootstrap BROKER_ENDPOINTS --config /secure/client.properties
+```
+
+Do not open Kafka to the Internet to make a smoke test pass. Follow [acceptance](acceptance.md) and [observability](observability.md) before admitting application traffic.
