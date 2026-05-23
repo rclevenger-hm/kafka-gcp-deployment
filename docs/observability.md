@@ -19,3 +19,6 @@ Export targets with `terraform -chdir=terraform output -json prometheus_targets 
 
 These are starting thresholds. Change them with SLO and recovery evidence. Planned maintenance silences must expire automatically. Alert rules include behavioral tests using Prometheus `promtool`.
 
+## Additional production instrumentation
+
+Install your approved host monitoring/logging collector for disk usage/latency, memory, CPU, kernel errors and systemd logs. Monitor certificate expiration and Secret Manager audit logs. Consumer lag is workload-specific and requires consumer/client instrumentation or a separately authenticated lag exporter. It is not inferred from broker throughput. Export logs with redaction and retention rules; disk growth forecasting and application produce/fetch SLOs are acceptance gates.
