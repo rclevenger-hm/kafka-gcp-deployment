@@ -6,3 +6,8 @@ Preserve its original data disk, node ID, cluster UUID and DNS identity. Diagnos
 
 A lost broker disk requires a controlled replacement and replica recovery from surviving ISR members. A lost controller disk requires Apache's dynamic quorum replacement procedure with correct directory IDs and membership changes; do not repeatedly run initial cluster bootstrap against an existing quorum. Take another controller out of service only after the replacement is caught up and membership is verified.
 
+## Regional loss
+
+Independent disk snapshots are not an application-consistent distributed Kafka backup. Maintain a separate recovery cluster and rehearse asynchronous replication, topic configuration/ACL restoration and consumer-offset translation. [MirrorMaker 2 example](../../config/mirrormaker2.properties.example) is a starting configuration only; replication is not deployed by this module and its credentials need dedicated ACLs.
+
+Document RPO as observed replication/checkpoint delay and RTO as detection, decision, routing and client recovery time. Validate sample message IDs and offsets after failover, then prevent dual writers unless the application explicitly supports them. Retain state versions, cluster identities, topic configs, ACL exports, certificate trust and runbook evidence in a protected recovery store.
