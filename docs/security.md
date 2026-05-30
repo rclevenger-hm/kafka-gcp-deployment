@@ -24,3 +24,6 @@ Kafka and the Java exporter use pinned release URLs and expected digests. Archiv
 
 systemd runs Kafka as an unprivileged user with filesystem protections and file descriptor limits. Private TLS keys are mode 0600. Provisioning never enables shell tracing or prints secret responses. Administrators with root or metadata write access can change runtime code and must be treated as privileged.
 
+## Remaining security gates
+
+Metrics are plaintext HTTP on a private allowlisted port. Use a private collector and a secured remote-write path; add a proxy or exporter TLS configuration if required by policy. The runtime does not install a host log/metrics agent. Attach your approved agent and IAM roles separately. Certificate expiry, host disk pressure, secret access auditing and organization policy checks must be monitored before production. See [rotation](runbooks/certificate-rotation.md).
