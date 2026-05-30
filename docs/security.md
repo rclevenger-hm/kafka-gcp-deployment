@@ -14,3 +14,7 @@ Issue a separate client certificate. Create topic and consumer group ACLs using 
 
 For consumers use `--consumer --topic orders.events --group orders-service`. Review wildcard use explicitly. Test denied access with an unrelated trusted certificate. Certificate authentication identifies the caller; it does not automatically grant data access.
 
+## Cloud identity
+
+Each VM uses a distinct service account with access to exactly its own TLS secret. No JSON keys are generated. The OAuth `cloud-platform` scope is constrained by IAM. Humans use IAP and OS Login; the project SSH metadata key path and serial console access are disabled. Do not add Editor or Owner to node accounts.
+
