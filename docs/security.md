@@ -18,3 +18,9 @@ For consumers use `--consumer --topic orders.events --group orders-service`. Rev
 
 Each VM uses a distinct service account with access to exactly its own TLS secret. No JSON keys are generated. The OAuth `cloud-platform` scope is constrained by IAM. Humans use IAP and OS Login; the project SSH metadata key path and serial console access are disabled. Do not add Editor or Owner to node accounts.
 
+## Supply chain and host controls
+
+Kafka and the Java exporter use pinned release URLs and expected digests. Archive extraction rejects traversal, symlinks and special files. Debian packages are installed through signed package repositories; the Debian image family and security package versions are intentionally not bit-for-bit frozen. Patch and rehearse changes in a staging project. For immutable-image deployments, build a reviewed image and replace the image family reference with its exact resource ID.
+
+systemd runs Kafka as an unprivileged user with filesystem protections and file descriptor limits. Private TLS keys are mode 0600. Provisioning never enables shell tracing or prints secret responses. Administrators with root or metadata write access can change runtime code and must be treated as privileged.
+
