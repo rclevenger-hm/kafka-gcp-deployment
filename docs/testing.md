@@ -17,3 +17,6 @@ python3 tests/integration.py --kafka-home .local/kafka_2.13-4.1.2 --jmx-jar .loc
 
 This fetches checksummed artifacts, creates a temporary CA and node/client certificates, formats and starts three controllers and three brokers on separate local ports, verifies TLS quorum, performs an RF3 roundtrip, rejects an unauthorized client and restarts a broker. The harness terminates its own processes and removes temporary secrets on exit. It does not emulate GCE disks, DNS, IAP or zones.
 
+## Monitoring rules
+
+Run `promtool check rules monitoring/alerts.yml` and `promtool test rules monitoring/alerts.test.yml`. GitHub Actions runs these commands in the Prometheus container alongside Python, Terraform and real Kafka jobs. CI does not deploy any infrastructure or request GCP credentials.
