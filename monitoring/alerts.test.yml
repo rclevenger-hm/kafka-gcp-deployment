@@ -1,0 +1,48 @@
+rule_files:
+  - alerts.yml
+evaluation_interval: 1m
+tests:
+  - interval: 1m
+    input_series:
+      - series: 'kafka_replica_underreplicatedpartitions{cluster="test",instance="broker-1"}'
+        values: '0 1 1 1 1 1 1 0'
+    alert_rule_test:
+      - eval_time: 4m
+        alertname: KafkaUnderReplicatedPartitions
+        exp_alerts: []
+      - eval_time: 6m
+        alertname: KafkaUnderReplicatedPartitions
+        exp_alerts:
+          - exp_labels:
+              cluster: test
+              instance: broker-1
+              severity: ticket
+            exp_annotations:
+              summary: Kafka replication has not recovered within five minutes
+      - eval_time: 7m
+        alertname: KafkaUnderReplicatedPartitions
+        exp_alerts: []
+  - interval: 1m
+    input_series:
+      - series: 'kafka_replica_underminisrpartitioncount{cluster="test",instance="broker-1"}'
+        values: '1 1 1'
+    alert_rule_test:
+      - eval_time: 1m
+        alertname: KafkaBelowMinimumISR
+        exp_alerts:
+          - exp_labels:
+              cluster: test
+              instance: broker-1
+              severity: page
+            exp_annotations:
+              summary: Kafka cannot safely acknowledge writes for some partitions
+  - interval: 1m
+    input_series:
+      - series: 'kafka_controller_activecontrollercount{cluster="test",instance="controller-1"}'
+        values: '1 1 1'
+      - series: 'kafka_controller_activecontrollercount{cluster="test",instance="controller-2"}'
+        values: '0 0 0'
+    alert_rule_test:
+      - eval_time: 2m
+        alertname: KafkaControllerCount
+        exp_alerts: []
