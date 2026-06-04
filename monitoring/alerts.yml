@@ -1,0 +1,45 @@
+groups:
+  - name: kafka-availability
+    rules:
+      - alert: KafkaExporterDown
+        expr: up{job="kafka"} == 0
+        for: 2m
+        labels:
+          severity: page
+        annotations:
+          summary: Kafka metrics endpoint is unavailable
+      - alert: KafkaOfflinePartitions
+        expr: kafka_controller_offlinepartitionscount > 0
+        for: 1m
+        labels:
+          severity: page
+        annotations:
+          summary: Kafka has unavailable partitions
+      - alert: KafkaUnderReplicatedPartitions
+        expr: kafka_replica_underreplicatedpartitions > 0
+        for: 5m
+        labels:
+          severity: ticket
+        annotations:
+          summary: Kafka replication has not recovered within five minutes
+      - alert: KafkaBelowMinimumISR
+        expr: kafka_replica_underminisrpartitioncount > 0
+        for: 1m
+        labels:
+          severity: page
+        annotations:
+          summary: Kafka cannot safely acknowledge writes for some partitions
+      - alert: KafkaControllerCount
+        expr: sum by (cluster) (kafka_controller_activecontrollercount) != 1
+        for: 2m
+        labels:
+          severity: page
+        annotations:
+          summary: Kafka needs exactly one active controller per cluster
+      - alert: KafkaTelemetryMissing
+        expr: absent(up{job="kafka"})
+        for: 5m
+        labels:
+          severity: page
+        annotations:
+          summary: All Kafka target telemetry is missing
