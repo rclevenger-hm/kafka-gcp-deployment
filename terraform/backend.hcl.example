@@ -1,0 +1,2 @@
+bucket = "REPLACE-WITH-EXISTING-VERSIONED-STATE-BUCKET"
+prefix = "kafka/production"
