@@ -1,0 +1,18 @@
+project_id = "replace-project-id"
+region = "us-central1"
+zones = ["us-central1-a", "us-central1-b", "us-central1-c"]
+name_prefix = "kafka"
+dns_domain = "kafka.internal"
+client_cidrs = ["10.60.0.0/24"]
+metrics_cidrs = ["10.60.1.0/24"]
+broker_count = 3
+deletion_protection = true
+labels = { environment = "production", owner = "platform" }
+tls_secret_versions = {
+  kafka-controller-1 = "projects/replace-project-id/secrets/kafka-controller-1-tls/versions/1"
+  kafka-controller-2 = "projects/replace-project-id/secrets/kafka-controller-2-tls/versions/1"
+  kafka-controller-3 = "projects/replace-project-id/secrets/kafka-controller-3-tls/versions/1"
+  kafka-broker-1 = "projects/replace-project-id/secrets/kafka-broker-1-tls/versions/1"
+  kafka-broker-2 = "projects/replace-project-id/secrets/kafka-broker-2-tls/versions/1"
+  kafka-broker-3 = "projects/replace-project-id/secrets/kafka-broker-3-tls/versions/1"
+}
