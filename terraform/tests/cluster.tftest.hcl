@@ -16,3 +16,32 @@ variables {
   }
 }
 
+run "private_topology" {
+  command = plan
+
+  assert {
+    condition     = length(google_compute_instance.node) == 6 && length(google_compute_disk.data) == 6
+    error_message = "Default topology needs six independent nodes and disks."
+  }
+  assert {
+    condition     = alltrue([for n in google_compute_instance.node : length(n.network_interface[0].access_config) == 0])
+    error_message = "Kafka VMs must not have public addresses."
+  }
+  assert {
+    condition     = alltrue([for n in google_compute_instance.node : n.deletion_protection && n.shielded_instance_config[0].enable_secure_boot])
+    error_message = "VM deletion and integrity protections must remain enabled."
+  }
+  assert {
+    condition     = length(google_compute_firewall.clients) == 0 && length(google_compute_firewall.metrics) == 0
+    error_message = "Client and metrics ingress must default closed."
+  }
+  assert {
+    condition     = length(toset([for n in values(local.controllers) : n.zone])) == 3
+    error_message = "Controllers must span three distinct zones."
+  }
+  assert {
+    condition     = alltrue([for n in google_compute_instance.node : n.metadata["enable-oslogin"] == "TRUE" && n.metadata["block-project-ssh-keys"] == "TRUE"])
+    error_message = "Human access must use OS Login."
+  }
+}
+
