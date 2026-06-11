@@ -55,3 +55,13 @@ run "client_allowlist" {
   }
 }
 
+run "nat_opt_out" {
+  command = plan
+
+  variables { enable_nat = false }
+  assert {
+    condition     = length(google_compute_router_nat.egress) == 0
+    error_message = "NAT opt-out must avoid creating an egress service."
+  }
+}
+
