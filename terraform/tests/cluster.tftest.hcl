@@ -45,3 +45,13 @@ run "private_topology" {
   }
 }
 
+run "client_allowlist" {
+  command = plan
+
+  variables { client_cidrs = ["10.60.0.0/24"] }
+  assert {
+    condition     = google_compute_firewall.clients[0].source_ranges == toset(["10.60.0.0/24"]) && one(google_compute_firewall.clients[0].allow).ports == tolist(["9092"])
+    error_message = "Clients must be limited to the client listener."
+  }
+}
+
