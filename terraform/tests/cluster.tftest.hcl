@@ -65,3 +65,13 @@ run "nat_opt_out" {
   }
 }
 
+run "iap_opt_out" {
+  command = plan
+
+  variables { enable_iap_ssh = false }
+  assert {
+    condition     = length(google_compute_firewall.iap) == 0
+    error_message = "IAP opt-out must not allow SSH."
+  }
+}
+
