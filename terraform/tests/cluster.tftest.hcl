@@ -75,3 +75,9 @@ run "iap_opt_out" {
   }
 }
 
+run "reject_public_clients" {
+  command = plan
+  variables { client_cidrs = ["0.0.0.0/0"] }
+  expect_failures = [var.client_cidrs]
+}
+
