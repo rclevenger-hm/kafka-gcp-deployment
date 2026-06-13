@@ -93,3 +93,9 @@ run "reject_broad_private_network" {
   expect_failures = [var.client_cidrs]
 }
 
+run "reject_public_subnet" {
+  command = plan
+  variables { subnet_cidr = "8.8.0.0/16" }
+  expect_failures = [var.subnet_cidr]
+}
+
