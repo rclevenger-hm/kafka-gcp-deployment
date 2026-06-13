@@ -87,3 +87,9 @@ run "reject_public_metrics" {
   expect_failures = [var.metrics_cidrs]
 }
 
+run "reject_broad_private_network" {
+  command = plan
+  variables { client_cidrs = ["192.168.0.0/8"] }
+  expect_failures = [var.client_cidrs]
+}
+
