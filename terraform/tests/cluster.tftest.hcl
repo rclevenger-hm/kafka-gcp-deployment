@@ -99,3 +99,9 @@ run "reject_public_subnet" {
   expect_failures = [var.subnet_cidr]
 }
 
+run "reject_tiny_subnet" {
+  command = plan
+  variables { subnet_cidr = "10.42.1.0/28" }
+  expect_failures = [var.subnet_cidr]
+}
+
