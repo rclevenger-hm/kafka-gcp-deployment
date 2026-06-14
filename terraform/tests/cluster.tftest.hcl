@@ -105,3 +105,9 @@ run "reject_tiny_subnet" {
   expect_failures = [var.subnet_cidr]
 }
 
+run "reject_ipv6_subnet" {
+  command = plan
+  variables { subnet_cidr = "fd00::/64" }
+  expect_failures = [var.subnet_cidr]
+}
+
