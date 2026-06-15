@@ -111,3 +111,9 @@ run "reject_ipv6_subnet" {
   expect_failures = [var.subnet_cidr]
 }
 
+run "reject_fractional_brokers" {
+  command = plan
+  variables { broker_count = 3.5 }
+  expect_failures = [var.broker_count]
+}
+
