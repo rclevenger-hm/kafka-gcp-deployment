@@ -117,3 +117,9 @@ run "reject_fractional_brokers" {
   expect_failures = [var.broker_count]
 }
 
+run "reject_too_few_brokers" {
+  command = plan
+  variables { broker_count = 2 }
+  expect_failures = [var.broker_count]
+}
+
