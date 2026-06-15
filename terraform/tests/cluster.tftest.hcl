@@ -123,3 +123,9 @@ run "reject_too_few_brokers" {
   expect_failures = [var.broker_count]
 }
 
+run "reject_duplicate_zones" {
+  command = plan
+  variables { zones = ["us-central1-a", "us-central1-a", "us-central1-b"] }
+  expect_failures = [var.zones]
+}
+
