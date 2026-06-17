@@ -141,3 +141,8 @@ run "reject_mutable_secret" {
   expect_failures = [var.tls_secret_versions]
 }
 
+run "missing_node_secrets" {
+  command = plan
+  variables { tls_secret_versions = {} }
+  expect_failures = [google_compute_instance.node]
+}
