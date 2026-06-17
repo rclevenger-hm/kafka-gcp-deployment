@@ -135,3 +135,9 @@ run "reject_wrong_region" {
   expect_failures = [var.zones]
 }
 
+run "reject_mutable_secret" {
+  command = plan
+  variables { tls_secret_versions = { kafka = "projects/kafka-test-project/secrets/tls/versions/latest" } }
+  expect_failures = [var.tls_secret_versions]
+}
+
