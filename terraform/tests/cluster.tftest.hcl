@@ -129,3 +129,9 @@ run "reject_duplicate_zones" {
   expect_failures = [var.zones]
 }
 
+run "reject_wrong_region" {
+  command = plan
+  variables { zones = ["us-east1-a", "us-east1-b", "us-east1-c"] }
+  expect_failures = [var.zones]
+}
+
