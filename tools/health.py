@@ -17,3 +17,14 @@ def parse_quorum(text, expected_voters=3):
     return {"leader": leader, "max_follower_lag": lag, "voters": len(voters)}
 
 
+def health(home, bootstrap, config):
+    def call(tool, *args):
+        return subprocess.run([str(Path(home) / "bin" / tool), "--bootstrap-server", bootstrap, "--command-config", str(config), *args], capture_output=True, text=True, timeout=60, check=True).stdout
+    quorum = parse_quorum(call("kafka-metadata-quorum.sh", "describe", "--status"))
+    for flag in ("--under-replicated-partitions", "--unavailable-partitions", "--under-min-isr-partitions"):
+        output = call("kafka-topics.sh", "--describe", flag)
+        if re.search(r"\bTopic:", output):
+            raise ValueError("Unsafe maintenance state: " + flag)
+    return {"ok": True, "quorum": quorum}
+
+
