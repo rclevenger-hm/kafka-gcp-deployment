@@ -28,3 +28,14 @@ def health(home, bootstrap, config):
     return {"ok": True, "quorum": quorum}
 
 
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--kafka-home", default="/opt/kafka")
+    p.add_argument("--bootstrap", required=True)
+    p.add_argument("--config", type=Path, required=True)
+    args = p.parse_args()
+    print(json.dumps(health(args.kafka_home, args.bootstrap, args.config), indent=2))
+
+
+if __name__ == "__main__":
+    main()
