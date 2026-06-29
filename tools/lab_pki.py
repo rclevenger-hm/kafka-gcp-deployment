@@ -12,3 +12,27 @@ def run(*args):
     subprocess.run(args, check=True, stdout=subprocess.DEVNULL, stderr=subprocess.PIPE, timeout=60)
 
 
+def issue(directory, name, fqdn=None, days=30):
+    directory = Path(directory)
+    if not re.fullmatch(r"[a-z][a-z0-9-]{2,60}", name):
+        raise ValueError("Invalid certificate name")
+    if fqdn and not re.fullmatch(r"[a-z][a-z0-9.-]+", fqdn):
+        raise ValueError("Invalid DNS name")
+    key, cert, csr = [directory / (name + ext) for ext in (".key", ".pem", ".csr")]
+    if any(p.exists() for p in (key, cert, csr)):
+        raise FileExistsError("Refusing to overwrite a certificate identity")
+    run("openssl", "genpkey", "-algorithm", "RSA", "-pkeyopt", "rsa_keygen_bits:2048", "-out", str(key))
+    run("openssl", "req", "-new", "-key", str(key), "-subj", "/CN=" + name, "-out", str(csr))
+    ext = directory / (name + ".ext")
+    ext.write_text("basicConstraints=critical,CA:FALSE\nkeyUsage=critical,digitalSignature,keyEncipherment\nextendedKeyUsage=serverAuth,clientAuth\n" + ("subjectAltName=DNS:" + fqdn + "\n" if fqdn else ""))
+    run("openssl", "x509", "-req", "-in", str(csr), "-CA", str(directory / "ca.pem"), "-CAkey", str(directory / "ca.key"), "-CAcreateserial", "-days", str(days), "-sha256", "-extfile", str(ext), "-out", str(cert))
+    bundle = {"certificate": cert.read_text(), "private_key": key.read_text(), "ca": (directory / "ca.pem").read_text()}
+    path = directory / (name + ".json")
+    path.write_text(json.dumps(bundle) + "\n")
+    combined = directory / (name + "-client.pem")
+    combined.write_text(key.read_text() + cert.read_text())
+    for p in (key, path, combined):
+        p.chmod(0o600)
+    return path
+
+
