@@ -36,3 +36,10 @@ def issue(directory, name, fqdn=None, days=30):
     return path
 
 
+def create_ca(directory, days=30):
+    directory = Path(directory)
+    directory.mkdir(parents=True, exist_ok=False, mode=0o700)
+    run("openssl", "req", "-x509", "-newkey", "rsa:3072", "-nodes", "-sha256", "-days", str(days), "-subj", "/CN=kafka-lab-ca", "-addext", "basicConstraints=critical,CA:TRUE", "-addext", "keyUsage=critical,keyCertSign,cRLSign", "-keyout", str(directory / "ca.key"), "-out", str(directory / "ca.pem"))
+    (directory / "ca.key").chmod(0o600)
+
+
