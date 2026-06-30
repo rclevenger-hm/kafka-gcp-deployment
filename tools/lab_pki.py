@@ -43,3 +43,22 @@ def create_ca(directory, days=30):
     (directory / "ca.key").chmod(0o600)
 
 
+def main():
+    p = argparse.ArgumentParser(description=__doc__)
+    p.add_argument("--out", type=Path, default=Path("pki"))
+    p.add_argument("--prefix", default="kafka")
+    p.add_argument("--domain", default="kafka.internal")
+    p.add_argument("--brokers", type=int, choices=range(3, 19), default=3)
+    args = p.parse_args()
+    os.umask(0o077)
+    create_ca(args.out)
+    for role, count in (("controller", 3), ("broker", args.brokers)):
+        for i in range(1, count + 1):
+            name = f"{args.prefix}-{role}-{i}"
+            issue(args.out, name, f"{name}.{args.domain}")
+    issue(args.out, "kafka-admin")
+    print(f"Created 30-day lab PKI in {args.out}; protect the CA key and upload only each node JSON to its own secret.")
+
+
+if __name__ == "__main__":
+    main()
