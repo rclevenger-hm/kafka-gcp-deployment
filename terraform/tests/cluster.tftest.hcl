@@ -20,8 +20,8 @@ run "private_topology" {
   command = plan
 
   assert {
-    condition     = contains(keys(google_project_service.api), "iam.googleapis.com")
-    error_message = "Node account creation requires the IAM API."
+    condition     = alltrue([for api in ["iam.googleapis.com", "oslogin.googleapis.com"] : contains(keys(google_project_service.api), api)])
+    error_message = "Node identity and administrative access require IAM and OS Login APIs."
   }
 
   assert {
