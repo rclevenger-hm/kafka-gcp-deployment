@@ -52,7 +52,7 @@ def main():
                 provision.install_tls(bundle, c, node / "tls")
                 properties = provision.render_properties(c, str(node / "storage"), str(node / "tls"))
                 if role == "controller":
-                    properties = properties.replace("CONTROLLER://0.0.0.0:9093", f"CONTROLLER://127.0.0.1:{19093+i}")
+                    properties = properties.replace("CONTROLLER://0.0.0.0:9093", f"CONTROLLER://127.0.0.1:{19093+i}").replace("CONTROLLER://localhost:9093", f"CONTROLLER://localhost:{19093+i}")
                 else:
                     properties = properties.replace(":9092", f":{29092+i}").replace(":9094", f":{39094+i}")
                 conf = node / "server.properties"; conf.write_text(properties)

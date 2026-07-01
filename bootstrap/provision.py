@@ -101,6 +101,8 @@ def render_properties(c, root="/var/lib/kafka", tls="/etc/kafka/tls"):
         "transaction.state.log.min.isr": 2, "log.retention.hours": c["retention_hours"],
         "num.partitions": 3,
     }
+    if c["role"] == "controller":
+        config["advertised.listeners"] = f"CONTROLLER://{c['fqdn']}:9093"
     if c["role"] == "broker":
         config["advertised.listeners"] = f"CLIENT://{c['fqdn']}:9092,BROKER://{c['fqdn']}:9094"
         config["broker.rack"] = c["zone"]
