@@ -36,3 +36,19 @@ class ArtifactTests(unittest.TestCase):
             with self.assertRaises(ValueError): provision.extract_verified(archive, Path(temp)/"dest")
     def test_numeric_secret_version_required(self):
         with self.assertRaises(ValueError): provision.secret_payload("projects/test/secrets/tls/versions/latest")
+
+    def test_release_cdn_is_preferred(self):
+        with patch.object(provision, "download_verified") as download:
+            provision.download_kafka("4.1.2", "/tmp/kafka.tgz", "a" * 128)
+            self.assertTrue(download.call_args.args[0].startswith("https://dlcdn.apache.org/"))
+    def test_archived_release_falls_back_with_same_digest(self):
+        missing = provision.urllib.error.HTTPError("https://example.test", 404, "archived", {}, None)
+        with patch.object(provision, "download_verified", side_effect=[missing, None]) as download:
+            provision.download_kafka("4.1.2", "/tmp/kafka.tgz", "a" * 128)
+            self.assertEqual(download.call_count, 2)
+            self.assertTrue(download.call_args.args[0].startswith("https://archive.apache.org/"))
+            self.assertEqual(download.call_args.args[2], "a" * 128)
+    def test_checksum_failure_does_not_try_another_mirror(self):
+        with patch.object(provision, "download_verified", side_effect=ValueError("checksum")) as download:
+            with self.assertRaises(ValueError): provision.download_kafka("4.1.2", "/tmp/kafka.tgz", "a" * 128)
+            self.assertEqual(download.call_count, 1)

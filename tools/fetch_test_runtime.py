@@ -20,7 +20,8 @@ def main():
         return re.search(r'variable "'+name+r'" \{.*?default\s*=\s*"([^"]+)"',variables,re.S)[1]
     version=default("kafka_version"); digest=default("kafka_sha512")
     archive=args.out/f"kafka_2.13-{version}.tgz"
-    provision.download_verified(f"https://archive.apache.org/dist/kafka/{version}/{archive.name}",archive,digest)
+    print(f"Fetching and verifying Kafka {version}", flush=True)
+    provision.download_kafka(version,archive,digest)
     provision.extract_verified(archive,args.out)
     provision.download_verified(provision.JMX_URL,args.out/"jmx.jar",provision.JMX_SHA256,"sha256")
     print(args.out/f"kafka_2.13-{version}")

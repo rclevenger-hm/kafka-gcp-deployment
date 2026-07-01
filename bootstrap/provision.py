@@ -13,6 +13,7 @@ import subprocess
 import tarfile
 import tempfile
 import time
+import urllib.error
 import urllib.request
 
 META = "http://metadata.google.internal/computeMetadata/v1/"
@@ -146,6 +147,18 @@ def download_verified(url, destination, expected, algorithm="sha512"):
         temp.unlink(missing_ok=True)
 
 
+
+def download_kafka(version, destination, expected):
+    """Use the release CDN, falling back only when a release has been archived."""
+    artifact = f"kafka_2.13-{version}.tgz"
+    try:
+        download_verified(f"https://dlcdn.apache.org/kafka/{version}/{artifact}", destination, expected)
+    except urllib.error.HTTPError as error:
+        if error.code not in (404, 410):
+            raise
+        download_verified(f"https://archive.apache.org/dist/kafka/{version}/{artifact}", destination, expected)
+
+
 def extract_verified(archive, destination):
     with tarfile.open(archive) as tar:
         base = Path(destination).resolve()
@@ -233,7 +246,7 @@ def provision(config_path, allow_change=False):
     formatted = verify_identity(root, c["cluster_id"], c["node_id"])
     target = Path("/opt/kafka_2.13-" + c["kafka_version"])
     archive = Path("/var/cache/kafka_2.13-" + c["kafka_version"] + ".tgz")
-    download_verified(f"https://archive.apache.org/dist/kafka/{c['kafka_version']}/{archive.name}", archive, c["kafka_sha512"])
+    download_kafka(c["kafka_version"], archive, c["kafka_sha512"])
     if not (target / ".verified").exists() or (target / ".verified").read_text().strip() != c["kafka_sha512"]:
         with tempfile.TemporaryDirectory(dir="/opt") as staging:
             extract_verified(archive, staging)
