@@ -20,6 +20,11 @@ run "private_topology" {
   command = plan
 
   assert {
+    condition     = contains(keys(google_project_service.api), "iam.googleapis.com")
+    error_message = "Node account creation requires the IAM API."
+  }
+
+  assert {
     condition     = length(google_compute_instance.node) == 6 && length(google_compute_disk.data) == 6
     error_message = "Default topology needs six independent nodes and disks."
   }
